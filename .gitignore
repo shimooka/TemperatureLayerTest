@@ -18,3 +18,10 @@ local.properties
 # Eclipse project files
 .classpath
 .project
+
+# custom #
+proguard
+*_
+*.BAK
+*~
+*.apk
