@@ -58,7 +58,7 @@ public class TemperatureLayerActivityTest
         super.tearDown();
     }
 
-    public void testOnCreate() {
+    public void testOnCreate() throws Exception {
         mActivity = getActivity();
         assertTrue(mActivity.getTitle().toString().matches(
                 "^" + getStringFromR("app_name") + " ver(\\.[0-9]){3}$"));
@@ -72,7 +72,7 @@ public class TemperatureLayerActivityTest
         assertFalse(button.isEnabled());
     }
 
-    public void testButtonClick() {
+    public void testButtonClick() throws Exception {
         mActivity = getActivity();
         final Button startButton = (Button)mActivity.findViewById(getIdFromR("StartButton"));
         final Button stopButton = (Button)mActivity.findViewById(getIdFromR("StopButton"));
@@ -102,7 +102,7 @@ public class TemperatureLayerActivityTest
         assertFalse(stopButton.isEnabled());
     }
 
-    public void testClickSettingMenu() {
+    public void testClickSettingMenu() throws Exception {
         ActivityMonitor monitor = getInstrumentation().addMonitor(SettingActivity.class.getName(), null, false);
         getInstrumentation().addMonitor(monitor);
 
@@ -117,15 +117,18 @@ public class TemperatureLayerActivityTest
         }
     }
 
-    private int getIdFromR(String name) {
+    private int getIdFromR(String name) throws Exception {
+    	// find @id by name from all declared @id
         for (Class<?> subclass: mResource.getClasses()) {
             try {
                 return subclass.getField(name).getInt(null);
+            } catch (NoSuchFieldException  e) {
+                // skip
             } catch (Exception e) {
-                // nop
+            	throw e;
             }
         }
-        return -1;
+        throw new NoSuchFieldException("key '" + name + "' not found");
     }
 
     private String getStringFromR(String name) {
