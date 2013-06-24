@@ -19,22 +19,25 @@ package jp.doyouphp.android.temperaturelayer.test;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.margaritov.preference.colorpicker.ColorPickerPanelView;
+import net.margaritov.preference.colorpicker.ColorPickerPreference;
+
 import com.google.android.apps.mytracks.IntegerListPreference;
+import com.jayway.android.robotium.solo.Solo;
 
 import jp.doyouphp.android.temperaturelayer.R;
 import jp.doyouphp.android.temperaturelayer.SettingActivity;
 import android.annotation.SuppressLint;
-import android.content.Context;
+import android.graphics.Point;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
-import android.preference.Preference;
-import android.test.ActivityInstrumentationTestCase2;
 
 public class SettingActivityTest
-        extends ActivityInstrumentationTestCase2<SettingActivity> {
-    private SettingActivity mActivity;
-    Class<?> mResource;
-	private Map<String, String> mLayouts = new HashMap<String, String>();
+        extends AbstractTemperatureActivityTest<SettingActivity> {
+
+    private Map<String, String> mLayouts = new HashMap<String, String>();
+    private Solo solo;
+    private static final int WAIT_MSEC = 500;
 
     @SuppressLint("NewApi")
     public SettingActivityTest() {
@@ -50,18 +53,11 @@ public class SettingActivityTest
     protected void setUp() throws Exception {
         super.setUp();
 
-        Context context = this.getInstrumentation().getTargetContext().getApplicationContext();
-        try {
-            mResource = context.getClassLoader().loadClass("jp.doyouphp.android.temperaturelayer.R");
-        } catch (ClassNotFoundException e) {
-            throw e;
-        }
-        
-        mActivity = getActivity();
         mActivity.resetSetting();
-        
-        String[] entries = context.getResources().getStringArray(R.array.entries_layout);
-        String[] values = context.getResources().getStringArray(R.array.values_layout);
+        solo = new Solo(getInstrumentation(), mActivity);
+
+        String[] entries = mContext.getResources().getStringArray(R.array.entries_layout);
+        String[] values = mContext.getResources().getStringArray(R.array.values_layout);
         for (int i = 0; i < entries.length; i++) {
             mLayouts.put(values[i], entries[i]);
         }
@@ -72,88 +68,115 @@ public class SettingActivityTest
         super.tearDown();
     }
 
-    @SuppressWarnings("deprecation")
-	public void testOnCreate() throws Exception {
+    public void testOnCreate() throws Exception {
         assertEquals(getStringFromR("app_name"), mActivity.getTitle().toString());
+    }
 
-        /**
-         * start on boot
-         */
-        Preference checkbox = mActivity.findPreference("key_start_on_boot");
-        assertNotNull(checkbox);
-        assertEquals(getStringFromR("label_start_on_boot"), checkbox.getTitle().toString());
-        assertFalse(((CheckBoxPreference)checkbox).isChecked());
-        assertEquals(getStringFromR("start_on_boot_no"), checkbox.getSummary().toString());
+    public void testStartOnBoot() throws Exception {
+        @SuppressWarnings("deprecation")
+        CheckBoxPreference preference = (CheckBoxPreference)mActivity.findPreference("key_start_on_boot");
+        assertNotNull(preference);
+        assertEquals(getStringFromR("label_start_on_boot"), preference.getTitle().toString());
+        assertFalse(preference.isChecked());
+        assertEquals(getStringFromR("start_on_boot_no"), preference.getSummary().toString());
 
-        /**
-         * temperature unit
-         */
-        Preference temperature_unit = mActivity.findPreference("key_temperature_unit");
-        assertNotNull(temperature_unit);
-        assertEquals(getStringFromR("label_temperature_unit"), temperature_unit.getTitle().toString());
+        solo.clickOnCheckBox(0);
+        solo.sleep(WAIT_MSEC);
+        assertTrue(preference.isChecked());
+        assertEquals(getStringFromR("start_on_boot_yes"), preference.getSummary().toString());
+
+        solo.clickOnCheckBox(0);
+        solo.sleep(WAIT_MSEC);
+        assertFalse(preference.isChecked());
+        assertEquals(getStringFromR("start_on_boot_no"), preference.getSummary().toString());
+    }
+
+    public void testTemperatureUnit() throws Exception {
+        @SuppressWarnings("deprecation")
+        ListPreference preference = (ListPreference)mActivity.findPreference("key_temperature_unit");
+        assertNotNull(preference);
+        assertEquals(getStringFromR("label_temperature_unit"), preference.getTitle().toString());
         assertEquals(
-        		getStringFromR("string_degree", "", getStringFromR("default_temperature_unit")),
-        		temperature_unit.getSummary().toString());
-        assertEquals(getStringFromR("dialogtitle_temperature_unit"), ((ListPreference)temperature_unit).getDialogTitle().toString());
-        
-        /**
-         * layout
-         */
-        Preference layout = mActivity.findPreference("key_layout");
-        assertNotNull(layout);
-        assertEquals(getStringFromR("label_layout"), layout.getTitle().toString());
-        assertEquals(mLayouts.get(getStringFromR("default_layout")), layout.getSummary().toString());
-        assertEquals(getStringFromR("dialogtitle_layout"), ((IntegerListPreference)layout).getDialogTitle().toString());
-        
-        /**
-         * text size
-         */
-        Preference text_size = mActivity.findPreference("key_text_size");
-        assertNotNull(text_size);
-        assertEquals(getStringFromR("label_text_size"), text_size.getTitle().toString());
+                getStringFromR("string_degree", "", getStringFromR("default_temperature_unit")),
+                preference.getSummary().toString());
+        assertEquals(getStringFromR("dialogtitle_temperature_unit"), preference.getDialogTitle().toString());
+
+        // C (default) -> F
+        solo.clickOnText(getStringFromR("label_temperature_unit"));
+        assertEquals("C", preference.getValue());
+        solo.clickInList(2);
+        solo.waitForDialogToClose(WAIT_MSEC);
+        assertEquals("°F", preference.getSummary().toString());
+
+        // F -> C
+        solo.clickOnText(getStringFromR("label_temperature_unit"));
+        assertEquals("F", preference.getValue());
+        solo.clickInList(1);
+        solo.waitForDialogToClose(WAIT_MSEC);
+        assertEquals("°C", preference.getSummary().toString());
+    }
+
+    public void testLayout() throws Exception {
+        @SuppressWarnings("deprecation")
+        ListPreference preference = (ListPreference)mActivity.findPreference("key_layout");
+        assertNotNull(preference);
+        assertEquals(getStringFromR("label_layout"), preference.getTitle().toString());
+        assertEquals(mLayouts.get(getStringFromR("default_layout")), preference.getSummary().toString());
+        assertEquals(getStringFromR("dialogtitle_layout"), ((IntegerListPreference)preference).getDialogTitle().toString());
+
+        solo.clickOnText(getStringFromR("label_layout"));
+        assertEquals(getStringFromR("default_layout"), preference.getValue());
+        solo.clickInList(2);
+        solo.waitForDialogToClose(WAIT_MSEC);
+        assertEquals(mLayouts.get("53"), preference.getSummary().toString());
+
+        solo.clickOnText(getStringFromR("label_layout"));
+        assertEquals("53", preference.getValue());
+        solo.clickInList(3);
+        solo.waitForDialogToClose(WAIT_MSEC);
+        assertEquals(mLayouts.get("83"), preference.getSummary().toString());
+    }
+
+    public void testTextSize() throws Exception {
+        @SuppressWarnings("deprecation")
+        ListPreference preference = (ListPreference)mActivity.findPreference("key_text_size");
+        assertNotNull(preference);
+        assertEquals(getStringFromR("label_text_size"), preference.getTitle().toString());
         assertEquals(
-        		getStringFromR("size_unit", Integer.valueOf(getIntFromR("default_text_size"))),
-        		text_size.getSummary().toString());
-        assertEquals(getStringFromR("dialogtitle_text_size"), ((IntegerListPreference)text_size).getDialogTitle().toString());
-        
-        /**
-         * text color
-         */
-        Preference color = mActivity.findPreference("key_color");
-        assertNotNull(color);
-        assertEquals(getStringFromR("label_color"), color.getTitle().toString());
-        assertNull(color.getSummary());
+                getStringFromR("size_unit", Integer.valueOf(getIntFromR("default_text_size"))),
+                preference.getSummary().toString());
+        assertEquals(getStringFromR("dialogtitle_text_size"), ((IntegerListPreference)preference).getDialogTitle().toString());
+
+        solo.clickOnText(getStringFromR("label_text_size"));
+        assertEquals(Integer.toString(getIntFromR("default_text_size")), preference.getValue());
+        solo.clickInList(2);
+        solo.waitForDialogToClose(WAIT_MSEC);
+        assertEquals("13 sp", preference.getSummary().toString());
+
+        solo.clickOnText(getStringFromR("label_text_size"));
+        assertEquals("13", preference.getValue());
+        solo.clickInList(3);
+        solo.waitForDialogToClose(WAIT_MSEC);
+        assertEquals("15 sp", preference.getSummary().toString());
     }
 
-    /**
-     * find @id by name from all declared @id
-     */
-    private int getIdFromR(String name) throws Exception {
-        for (Class<?> subclass: mResource.getClasses()) {
-            try {
-                return subclass.getField(name).getInt(null);
-            } catch (NoSuchFieldException  e) {
-                // skip
-            } catch (Exception e) {
-                throw e;
-            }
-        }
-        throw new NoSuchFieldException("key '" + name + "' not found");
-    }
+    @SuppressLint("NewApi")
+    public void testColor() throws Exception {
+        @SuppressWarnings("deprecation")
+        ColorPickerPreference preference = (ColorPickerPreference)mActivity.findPreference("key_color");
+        assertNotNull(preference);
+        assertEquals(getStringFromR("label_color"), preference.getTitle().toString());
+        assertNull(preference.getSummary());
 
-    private String getStringFromR(String name, Object... args) {
-        try {
-            return mActivity.getString(getIdFromR(name), args);
-        } catch (Exception e) {
-            return "";
-        }
-    }
-    
-    private int getIntFromR(String name) {
-        try {
-        	return mActivity.getResources().getInteger(getIdFromR(name));
-        } catch (Exception e) {
-            return -1;
-        }
+        solo.clickOnText(getStringFromR("label_color"));
+        solo.waitForDialogToClose(WAIT_MSEC);
+
+        Point size = new Point();
+        mActivity.getWindowManager().getDefaultDisplay().getSize(size);
+        solo.clickOnScreen(size.x / 3, size.y / 2);
+        solo.waitForDialogToClose(WAIT_MSEC);
+        solo.clickOnView(solo.getCurrentViews(ColorPickerPanelView.class).get(1));
+        solo.waitForDialogToClose(WAIT_MSEC);
+        assertNull(preference.getSummary());
     }
 }

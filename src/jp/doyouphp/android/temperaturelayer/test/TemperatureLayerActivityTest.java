@@ -21,15 +21,11 @@ import jp.doyouphp.android.temperaturelayer.TemperatureLayerActivity;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Instrumentation.ActivityMonitor;
-import android.content.Context;
-import android.test.ActivityInstrumentationTestCase2;
 import android.view.KeyEvent;
 import android.widget.Button;
 
 public class TemperatureLayerActivityTest
-        extends ActivityInstrumentationTestCase2<TemperatureLayerActivity> {
-    private TemperatureLayerActivity mActivity;
-    Class<?> mResource;
+        extends AbstractTemperatureActivityTest<TemperatureLayerActivity> {
 
     @SuppressLint("NewApi")
     public TemperatureLayerActivityTest() {
@@ -44,13 +40,6 @@ public class TemperatureLayerActivityTest
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-
-        Context context = this.getInstrumentation().getTargetContext().getApplicationContext();
-        try {
-            mResource = context.getClassLoader().loadClass("jp.doyouphp.android.temperaturelayer.R");
-        } catch (ClassNotFoundException e) {
-            throw e;
-        }
     }
 
     @Override
@@ -70,6 +59,8 @@ public class TemperatureLayerActivityTest
         button = (Button)mActivity.findViewById(getIdFromR("StopButton"));
         assertEquals(getStringFromR("stop_service"), button.getText().toString());
         assertFalse(button.isEnabled());
+
+        assertFalse(TemperatureLayerActivity.isServiceRunning(mActivity));
     }
 
     public void testButtonClick() throws Exception {
@@ -78,8 +69,8 @@ public class TemperatureLayerActivityTest
         final Button stopButton = (Button)mActivity.findViewById(getIdFromR("StopButton"));
         assertTrue(startButton.isEnabled());
         assertFalse(stopButton.isEnabled());
+        assertFalse(TemperatureLayerActivity.isServiceRunning(mActivity));
 
-//      TouchUtils.clickView(this, startButton);
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -89,8 +80,8 @@ public class TemperatureLayerActivityTest
         getInstrumentation().waitForIdleSync();
         assertFalse(startButton.isEnabled());
         assertTrue(stopButton.isEnabled());
+        assertTrue(TemperatureLayerActivity.isServiceRunning(mActivity));
 
-//      TouchUtils.clickView(this, stopButton);
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -100,6 +91,7 @@ public class TemperatureLayerActivityTest
         getInstrumentation().waitForIdleSync();
         assertTrue(startButton.isEnabled());
         assertFalse(stopButton.isEnabled());
+        assertFalse(TemperatureLayerActivity.isServiceRunning(mActivity));
     }
 
     public void testClickSettingMenu() throws Exception {
@@ -114,28 +106,6 @@ public class TemperatureLayerActivityTest
         assertEquals(1, monitor.getHits());
         if (settingActivity != null) {
             settingActivity.finish();
-        }
-    }
-
-    private int getIdFromR(String name) throws Exception {
-    	// find @id by name from all declared @id
-        for (Class<?> subclass: mResource.getClasses()) {
-            try {
-                return subclass.getField(name).getInt(null);
-            } catch (NoSuchFieldException  e) {
-                // skip
-            } catch (Exception e) {
-            	throw e;
-            }
-        }
-        throw new NoSuchFieldException("key '" + name + "' not found");
-    }
-
-    private String getStringFromR(String name) {
-        try {
-            return mActivity.getText(getIdFromR(name)).toString();
-        } catch (Exception e) {
-            return "";
         }
     }
 }
