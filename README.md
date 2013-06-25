@@ -5,7 +5,7 @@ This is a testing project for [Temperature Layer].
 About Temperature Layer
 -----------------------
 [Temperature Layer] is the simple Android application which displays battery temperature. Temperature Layer is available at [Google Play].
-The source code is available at [https://github.com/shimooka/TemperatureLayer]
+The source code is available at https://github.com/shimooka/TemperatureLayer
 
 License
 -------
