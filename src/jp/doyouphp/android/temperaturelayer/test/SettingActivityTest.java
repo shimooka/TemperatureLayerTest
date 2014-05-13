@@ -23,7 +23,7 @@ import net.margaritov.preference.colorpicker.ColorPickerPanelView;
 import net.margaritov.preference.colorpicker.ColorPickerPreference;
 
 import com.google.android.apps.mytracks.IntegerListPreference;
-import com.jayway.android.robotium.solo.Solo;
+import com.robotium.solo.Solo;
 
 import jp.doyouphp.android.temperaturelayer.R;
 import jp.doyouphp.android.temperaturelayer.SettingActivity;
@@ -102,6 +102,8 @@ public class SettingActivityTest
         assertEquals(getStringFromR("dialogtitle_temperature_unit"), preference.getDialogTitle().toString());
 
         // C (default) -> F
+        solo.waitForText(getStringFromR("label_temperature_unit"));
+        solo.waitForText(getStringFromR("label_temperature_unit"));
         solo.clickOnText(getStringFromR("label_temperature_unit"));
         assertEquals("C", preference.getValue());
         solo.clickInList(2);
@@ -109,6 +111,7 @@ public class SettingActivityTest
         assertEquals("°F", preference.getSummary().toString());
 
         // F -> C
+        solo.waitForText(getStringFromR("label_temperature_unit"));
         solo.clickOnText(getStringFromR("label_temperature_unit"));
         assertEquals("F", preference.getValue());
         solo.clickInList(1);
@@ -124,12 +127,14 @@ public class SettingActivityTest
         assertEquals(mLayouts.get(getStringFromR("default_layout")), preference.getSummary().toString());
         assertEquals(getStringFromR("dialogtitle_layout"), ((IntegerListPreference)preference).getDialogTitle().toString());
 
+        solo.waitForText(getStringFromR("label_layout"));
         solo.clickOnText(getStringFromR("label_layout"));
         assertEquals(getStringFromR("default_layout"), preference.getValue());
         solo.clickInList(2);
         solo.waitForDialogToClose(WAIT_MSEC);
         assertEquals(mLayouts.get("53"), preference.getSummary().toString());
 
+        solo.waitForText(getStringFromR("label_layout"));
         solo.clickOnText(getStringFromR("label_layout"));
         assertEquals("53", preference.getValue());
         solo.clickInList(3);
@@ -147,12 +152,14 @@ public class SettingActivityTest
                 preference.getSummary().toString());
         assertEquals(getStringFromR("dialogtitle_text_size"), ((IntegerListPreference)preference).getDialogTitle().toString());
 
+        solo.waitForText(getStringFromR("label_text_size"));
         solo.clickOnText(getStringFromR("label_text_size"));
         assertEquals(Integer.toString(getIntFromR("default_text_size")), preference.getValue());
         solo.clickInList(2);
         solo.waitForDialogToClose(WAIT_MSEC);
         assertEquals("13 sp", preference.getSummary().toString());
 
+        solo.waitForText(getStringFromR("label_text_size"));
         solo.clickOnText(getStringFromR("label_text_size"));
         assertEquals("13", preference.getValue());
         solo.clickInList(3);
@@ -168,6 +175,7 @@ public class SettingActivityTest
         assertEquals(getStringFromR("label_color"), preference.getTitle().toString());
         assertNull(preference.getSummary());
 
+        solo.waitForText(getStringFromR("label_color"));
         solo.clickOnText(getStringFromR("label_color"));
         solo.waitForDialogToClose(WAIT_MSEC);
 
