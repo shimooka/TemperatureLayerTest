@@ -9,7 +9,7 @@ The source code is available at https://github.com/shimooka/TemperatureLayer
 
 License
 -------
-Copyright &copy; 2013 Hideyuki SHIMOOKA &lt;shimooka@doyouphp.jp&gt;
+Copyright &copy; 2013,2014 Hideyuki SHIMOOKA &lt;shimooka@doyouphp.jp&gt;
 Licensed under the [Apache License, Version 2.0][Apache]
 
 [Apache]: http://www.apache.org/licenses/LICENSE-2.0
